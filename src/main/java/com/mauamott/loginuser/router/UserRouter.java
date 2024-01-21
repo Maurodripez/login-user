@@ -1,6 +1,7 @@
 package com.mauamott.loginuser.router;
 
-import com.mauamott.loginuser.handlers.UserHandlerImpl;
+import com.mauamott.loginuser.handlers.UserHandler;
+import com.mauamott.loginuser.handlers.impl.UserHandlerImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -12,18 +13,16 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 
 @Configuration
 public class UserRouter {
-
+    private final String PATH = "private";
     @Bean
-    public RouterFunction<ServerResponse> userRouterFunction(UserHandlerImpl userHandler){
-        return RouterFunctions.route(GET("/login/user/{id}").and(accept(MediaType.APPLICATION_JSON)),
-                        userHandler :: getUsers)
-                .andRoute(POST("/login/user").and(accept(MediaType.APPLICATION_JSON)),
-                        userHandler :: saveUser)
-                .andRoute(DELETE("/login/delete/user/{id}").and(accept(MediaType.APPLICATION_JSON)),
+    public RouterFunction<ServerResponse> userRouterFunction(UserHandler userHandler){
+        return RouterFunctions.route(GET("public/user/{id}").and(accept(MediaType.APPLICATION_JSON)),
+                userHandler :: getUser)
+                .andRoute(DELETE("/delete/user/{id}").and(accept(MediaType.APPLICATION_JSON)),
                         userHandler :: deleteUser)
-                .andRoute(PUT("/login/update/user/{id}").and(accept(MediaType.APPLICATION_JSON)),
+                .andRoute(PUT("/update/user/{id}").and(accept(MediaType.APPLICATION_JSON)),
                         userHandler :: updateUser)
-                .andRoute(POST("/login/change/password/{id}").and(accept(MediaType.APPLICATION_JSON)),
+                .andRoute(POST("/change/password/{id}").and(accept(MediaType.APPLICATION_JSON)),
                         userHandler :: changePassword);
     }
 }
