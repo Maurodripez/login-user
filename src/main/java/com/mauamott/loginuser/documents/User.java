@@ -34,10 +34,20 @@ public class User implements UserDetails {
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
+
     private String name;
     private String lastname;
     private String roles;
+
+    @Builder.Default
     private boolean verify = false;
+
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private String secret;
+
+    private String qrCodeUri;
+
+    private Boolean mfaEnabled;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

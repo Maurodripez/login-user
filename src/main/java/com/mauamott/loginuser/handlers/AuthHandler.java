@@ -4,7 +4,7 @@ import com.mauamott.loginuser.documents.User;
 import com.mauamott.loginuser.dto.CreateUserDTO;
 import com.mauamott.loginuser.dto.LoginDTO;
 import com.mauamott.loginuser.dto.TokenDTO;
-import com.mauamott.loginuser.service.impl.AuthService;
+import com.mauamott.loginuser.service.impl.AuthServiceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
@@ -17,7 +17,7 @@ import reactor.core.publisher.Mono;
 @Slf4j
 @RequiredArgsConstructor
 public class AuthHandler {
-    private final AuthService authService;
+    private final AuthServiceImpl authService;
 
     public Mono<ServerResponse> login(ServerRequest request){
         Mono<LoginDTO> dtoMono = request.bodyToMono(LoginDTO.class);
