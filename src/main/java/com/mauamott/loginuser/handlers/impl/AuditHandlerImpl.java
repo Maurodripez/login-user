@@ -1,6 +1,7 @@
-package com.mauamott.loginuser.handlers;
+package com.mauamott.loginuser.handlers.impl;
 
 import com.mauamott.loginuser.documents.AuditLog;
+import com.mauamott.loginuser.handlers.AuditHandler;
 import com.mauamott.loginuser.repository.AuditLogRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
