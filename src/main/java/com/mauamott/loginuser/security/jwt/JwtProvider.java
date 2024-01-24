@@ -1,5 +1,6 @@
 package com.mauamott.loginuser.security.jwt;
 
+import static com.mauamott.loginuser.exception.JwtExceptions.BadTokenException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -44,17 +45,21 @@ public class JwtProvider {
                 Jwts.parserBuilder().setSigningKey(getKey(secret)).build().parseClaimsJws(token).getBody();
                 return true;
             } catch (ExpiredJwtException e) {
-                log.info("token expired");
+                log.info("Token expired");
+                throw new BadTokenException("Token expired");
             } catch (UnsupportedJwtException e) {
-                log.info("token unsupported");
+                log.info("Token unsupported");
+                throw new BadTokenException("Token unsupported");
             } catch (MalformedJwtException e) {
-                log.info("token malformed");
+                log.info("Token malformed");
+                throw new BadTokenException("Token malformed");
             } catch (SignatureException e) {
-                log.info("token signature");
+                log.info("Token signature");
+                throw new BadTokenException("Token signature");
             } catch (IllegalArgumentException e) {
-                log.info("token illegal");
+                log.info("Token illegal");
+                throw new BadTokenException("Token illegal");
             }
-            return false;
     }
     private Key getKey(String secret){
         byte[] secretBytes = Decoders.BASE64URL.decode(secret);

@@ -12,13 +12,9 @@ import com.warrenstrange.googleauth.GoogleAuthenticatorKey;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 @Service
 @Slf4j
@@ -34,7 +30,6 @@ public class AuthServiceImpl {
                 .filter(user -> passwordEncoder.matches(dto.getPassword(), user.getPassword()))
                 .flatMap(user -> {
                     if (!user.isVerify()) {
-                        // User has 2FA enabled, validate TOTP
                         String secretKey = user.getSecret();
                         int totpCode = Integer.parseInt(dto.getCode());
 
@@ -44,7 +39,6 @@ public class AuthServiceImpl {
                             return Mono.error(new Exception("Invalid TOTP"));
                         }
                     } else {
-                        // User doesn't have 2FA enabled
                         return Mono.just(new TokenDTO(jwtProvider.generateToken(user)));
                     }
                 })

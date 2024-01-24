@@ -1,8 +1,7 @@
 package com.mauamott.loginuser.service.impl;
 
 import com.mauamott.loginuser.documents.User;
-import com.mauamott.loginuser.dto.ChangePassword;
-import com.mauamott.loginuser.enums.Role;
+import com.mauamott.loginuser.dto.ChangePasswordDTO;
 import com.mauamott.loginuser.exception.UserExceptions;
 import com.mauamott.loginuser.handlers.AuditHandler;
 import com.mauamott.loginuser.repository.UserRepository;
@@ -10,12 +9,8 @@ import com.mauamott.loginuser.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
@@ -62,7 +57,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Mono<ServerResponse> changePassword(String id,Mono<User> existingUserMono, Mono<ChangePassword> updatedUserMono) {
+    public Mono<ServerResponse> changePassword(String id,Mono<User> existingUserMono, Mono<ChangePasswordDTO> updatedUserMono) {
 
         return Mono.zip(existingUserMono, updatedUserMono, (existingUser, updatedUser) -> {
                     if (!passwordEncoder.matches(updatedUser.getOldPassword(), existingUser.getPassword())) {

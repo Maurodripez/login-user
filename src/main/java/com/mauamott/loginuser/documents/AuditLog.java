@@ -4,6 +4,7 @@ import lombok.Data;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 
@@ -14,4 +15,5 @@ public class AuditLog {
     private String userId;
     private String eventType;
     private LocalDateTime timestamp;
+    private List<AuditEvent> auditEvents;
 }
