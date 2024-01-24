@@ -1,6 +1,6 @@
 package com.mauamott.loginuser.router;
 
-import com.mauamott.loginuser.handlers.AuthHandler;
+import com.mauamott.loginuser.handlers.impl.AuthHandlerImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
@@ -13,9 +13,9 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 
 @Configuration
 public class AuthRouter {
-    private final String PATH = "auth/";
     @Bean
-    public RouterFunction<ServerResponse> authRouterFunction(AuthHandler authHandler){
+    public RouterFunction<ServerResponse> authRouterFunction(AuthHandlerImpl authHandler){
+        String PATH = "auth/";
         return RouterFunctions.route(POST(PATH + "login").and(accept(MediaType.APPLICATION_JSON)),
                         authHandler :: login)
                 .andRoute(POST(PATH + "createUser").and(accept(MediaType.APPLICATION_JSON)),

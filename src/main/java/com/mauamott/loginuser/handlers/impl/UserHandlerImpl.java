@@ -1,8 +1,7 @@
 package com.mauamott.loginuser.handlers.impl;
 
 import com.mauamott.loginuser.documents.User;
-import com.mauamott.loginuser.dto.ChangePassword;
-import com.mauamott.loginuser.exception.UserExceptions;
+import com.mauamott.loginuser.dto.ChangePasswordDTO;
 import com.mauamott.loginuser.handlers.AuditHandler;
 import com.mauamott.loginuser.handlers.UserHandler;
 import com.mauamott.loginuser.service.UserService;
@@ -55,8 +54,7 @@ public class UserHandlerImpl implements UserHandler {
                 .flatMap(updatedUser -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
                         .body(fromValue(updatedUser)))
-                .switchIfEmpty(ServerResponse.notFound().build())
-                .onErrorResume(this::handleUpdateError);
+                .switchIfEmpty(ServerResponse.notFound().build());
     }
 
     @Override
@@ -64,7 +62,7 @@ public class UserHandlerImpl implements UserHandler {
         String id = request.pathVariable("id");
 
         Mono<User> existingUserMono = userService.getUser(id);
-        Mono<ChangePassword> updatedUserMono = request.bodyToMono(ChangePassword.class);
+        Mono<ChangePasswordDTO> updatedUserMono = request.bodyToMono(ChangePasswordDTO.class);
         return userService.changePassword(id,existingUserMono,updatedUserMono);
     }
 
