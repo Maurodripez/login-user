@@ -34,4 +34,15 @@ public class UserExceptions {
         }
     }
 
+    public static class ErrorDeleteUserException extends ResponseStatusException {
+        public ErrorDeleteUserException(String message) {
+            super(HttpStatus.UNAUTHORIZED, message);
+        }
+    }
+    public static class ErrorUpdateUserException extends ResponseStatusException {
+        public ErrorUpdateUserException(String message) {
+            super(HttpStatus.UNAUTHORIZED, message);
+        }
+    }
+
 }

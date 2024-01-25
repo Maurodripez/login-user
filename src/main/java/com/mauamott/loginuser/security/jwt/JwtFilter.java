@@ -1,6 +1,9 @@
 package com.mauamott.loginuser.security.jwt;
 
 import static com.mauamott.loginuser.exception.JwtExceptions.*;
+import static com.mauamott.loginuser.utils.Constants.INVALID_AUTH;
+import static com.mauamott.loginuser.utils.Constants.NO_TOKEN_FOUND;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
@@ -21,9 +24,9 @@ public class JwtFilter implements WebFilter {
             return chain.filter(exchange);
         String auth = request.getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
         if(auth == null)
-            return Mono.error(new NoTokenWasFoundException("No token was found"));
+            return Mono.error(new NoTokenWasFoundException(NO_TOKEN_FOUND));
         if(!auth.startsWith("Bearer "))
-            return Mono.error(new InvalidAuthException("invalid auth"));
+            return Mono.error(new InvalidAuthException(INVALID_AUTH));
         String token = auth.replace("Bearer ","");
         exchange.getAttributes().put("token",token);
         return chain.filter(exchange);

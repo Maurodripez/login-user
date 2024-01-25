@@ -13,7 +13,6 @@ import static org.springframework.web.reactive.function.server.RequestPredicates
 
 @Configuration
 public class UserRouter {
-    private final String PATH = "private";
     @Bean
     public RouterFunction<ServerResponse> userRouterFunction(UserHandler userHandler){
         return RouterFunctions.route(GET("/user/{id}").and(accept(MediaType.APPLICATION_JSON)),

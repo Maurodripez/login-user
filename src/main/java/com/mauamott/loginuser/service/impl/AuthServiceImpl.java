@@ -3,12 +3,15 @@ import com.mauamott.loginuser.documents.User;
 import com.mauamott.loginuser.dto.CreateUserDTO;
 import com.mauamott.loginuser.dto.LoginDTO;
 import com.mauamott.loginuser.dto.TokenDTO;
-import com.mauamott.loginuser.exception.UserExceptions;
+import static com.mauamott.loginuser.exception.AuthExceptions.*;
+import static com.mauamott.loginuser.utils.Constants.*;
+
+import static com.mauamott.loginuser.exception.UserExceptions.*;
 import com.mauamott.loginuser.repository.UserRepository;
 import com.mauamott.loginuser.enums.Role;
 import com.mauamott.loginuser.security.jwt.JwtProvider;
-import com.warrenstrange.googleauth.GoogleAuthenticator;
-import com.warrenstrange.googleauth.GoogleAuthenticatorKey;
+import com.mauamott.loginuser.service.AuthService;
+import com.mauamott.loginuser.utils.GoogleAuthenticatorUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
@@ -19,12 +22,14 @@ import reactor.core.publisher.Mono;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class AuthServiceImpl {
+public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
     private final JwtProvider jwtProvider;
     private final PasswordEncoder passwordEncoder;
+    private final GoogleAuthenticatorUtils authenticator;
 
+    @Override
     public Mono<TokenDTO> login(LoginDTO dto) {
         return userRepository.findByUsernameOrEmail(dto.getUsername(), dto.getUsername())
                 .filter(user -> passwordEncoder.matches(dto.getPassword(), user.getPassword()))
@@ -33,39 +38,28 @@ public class AuthServiceImpl {
                         String secretKey = user.getSecret();
                         int totpCode = Integer.parseInt(dto.getCode());
 
-                        if (isTotpValid(secretKey, totpCode)) {
+                        if (authenticator.isTotpValid(secretKey, totpCode)) {
                             return Mono.just(new TokenDTO(jwtProvider.generateToken(user)));
                         } else {
-                            return Mono.error(new Exception("Invalid TOTP"));
+                            return Mono.error(new InvalidTotpException(INVALID_TOTP));
                         }
                     } else {
                         return Mono.just(new TokenDTO(jwtProvider.generateToken(user)));
                     }
                 })
-                .switchIfEmpty(Mono.error(new Exception("Bad credentials")));
-    }
-    private boolean isTotpValid(String secretKey, int totpCode) {
-        GoogleAuthenticator gAuth = new GoogleAuthenticator();
-        System.out.println("Secret Key: " + secretKey);
-        System.out.println("TOTP Code: " + totpCode);
-
-        boolean isValid = gAuth.authorize(secretKey, totpCode);
-        System.out.println("Is TOTP Valid: " + isValid);
-
-        return isValid;
+                .switchIfEmpty(Mono.error(new BadCredentialsException(BAD_CREDENTIALS)));
     }
 
-
-
-    public Mono<User> createUser(CreateUserDTO dto){
+    @Override
+    public Mono<User> createUser(CreateUserDTO dto) {
         String encodedPassword = passwordEncoder.encode(dto.getPassword());
         // Generar el secreto para 2FA
-        String secretKey = generateSecretKey();
+        String secretKey = authenticator.generateSecretKey();
 
         // Generar URL del código QR
         String issuer = "Login2FA";
         String accountName = dto.getUsername();
-        String qrCodeUri = generateQrCodeUri(issuer, accountName, secretKey);
+        String qrCodeUri = authenticator.generateQrCodeUri(issuer, accountName, secretKey);
 
         User user = User.builder()
                 .username(dto.getUsername())
@@ -77,26 +71,19 @@ public class AuthServiceImpl {
                 .secret(secretKey)
                 .build();
 
-        Mono<Boolean> userExist = userRepository.findByUsernameOrEmail(user.getUsername(), user.getEmail()).hasElement();
-
-        return userExist
-                .flatMap(exist -> exist ?
-                        Mono.error(new Exception("Username or Email already in use"))
-                        : userRepository.save(user)
-                        .map(savedUser -> {
-                            // Adjuntar la URL del código QR al usuario
-                            savedUser.setQrCodeUri(qrCodeUri);
-                            return savedUser;
-                        })
-                );
+        return validateAndSaveUser(user)
+                .map(savedUser -> {
+                    savedUser.setQrCodeUri(qrCodeUri);
+                    return savedUser;
+                })
+                .onErrorResume(this::handleDuplicateKeyError);
     }
-
     public Mono<User> validateAndSaveUser(User user) {
         if (isValidRole(user.getRoles())) {
             return userRepository.save(user)
                     .onErrorResume(this::handleDuplicateKeyError);
         } else {
-            return Mono.error(new UserExceptions.InvalidRoleException("Invalid user role"));
+            return Mono.error(new InvalidRoleException(INVALID_ROLE));
         }
     }
 
@@ -109,26 +96,12 @@ public class AuthServiceImpl {
             String errorMessage = duplicateKeyException.getMessage();
 
             if (errorMessage.contains("email")) {
-                return Mono.error(new UserExceptions.DuplicateEmailException("Email already exists"));
+                return Mono.error(new DuplicateEmailException(EMAIL_EXIST));
             } else if (errorMessage.contains("username")) {
-                return Mono.error(new UserExceptions.DuplicateUsernameException("Username already exists"));
+                return Mono.error(new DuplicateUsernameException(USERNAME_EXIST));
             }
         }
         return Mono.error(e);
     }
 
-    public static String generateSecretKey() {
-        GoogleAuthenticator gAuth = new GoogleAuthenticator();
-        GoogleAuthenticatorKey key = gAuth.createCredentials();
-
-        // Return the generated secret key
-        return key.getKey();
-    }
-
-    public static String generateQrCodeUri(String issuer, String accountName, String secretKey) {
-        return String.format(
-                "otpauth://totp/%s:%s?secret=%s&issuer=%s",
-                issuer, accountName, secretKey, issuer
-        );
-    }
 }

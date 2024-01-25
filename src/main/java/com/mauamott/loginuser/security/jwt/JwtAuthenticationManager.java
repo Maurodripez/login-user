@@ -1,6 +1,8 @@
 package com.mauamott.loginuser.security.jwt;
 
 import static com.mauamott.loginuser.exception.JwtExceptions.BadTokenException;
+import static com.mauamott.loginuser.utils.Constants.BAD_TOKEN;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
@@ -27,7 +29,7 @@ public class JwtAuthenticationManager implements ReactiveAuthenticationManager {
         return Mono.just(authentication)
                 .map(auth -> jwtProvider.getClaims(auth.getCredentials().toString()))
                 .log()
-                .onErrorResume(e -> Mono.error(new BadTokenException("bad token")))
+                .onErrorResume(e -> Mono.error(new BadTokenException(BAD_TOKEN)))
                 .map(claims -> new UsernamePasswordAuthenticationToken(
                         claims.getSubject(),
                         null,

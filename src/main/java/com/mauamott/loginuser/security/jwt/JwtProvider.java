@@ -1,6 +1,8 @@
 package com.mauamott.loginuser.security.jwt;
 
 import static com.mauamott.loginuser.exception.JwtExceptions.BadTokenException;
+import static com.mauamott.loginuser.utils.ConstantsToken.*;
+
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -46,19 +48,19 @@ public class JwtProvider {
                 return true;
             } catch (ExpiredJwtException e) {
                 log.info("Token expired");
-                throw new BadTokenException("Token expired");
+                throw new BadTokenException(TOKEN_EXPIRED);
             } catch (UnsupportedJwtException e) {
                 log.info("Token unsupported");
-                throw new BadTokenException("Token unsupported");
+                throw new BadTokenException(TOKEN_UNSUPPORTED);
             } catch (MalformedJwtException e) {
                 log.info("Token malformed");
-                throw new BadTokenException("Token malformed");
+                throw new BadTokenException(TOKEN_MALFORMED);
             } catch (SignatureException e) {
                 log.info("Token signature");
-                throw new BadTokenException("Token signature");
+                throw new BadTokenException(TOKEN_SIGNATURE);
             } catch (IllegalArgumentException e) {
                 log.info("Token illegal");
-                throw new BadTokenException("Token illegal");
+                throw new BadTokenException(TOKEN_ILLEGAL);
             }
     }
     private Key getKey(String secret){

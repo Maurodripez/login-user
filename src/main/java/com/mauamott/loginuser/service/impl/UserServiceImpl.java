@@ -2,24 +2,19 @@ package com.mauamott.loginuser.service.impl;
 
 import com.mauamott.loginuser.documents.User;
 import com.mauamott.loginuser.dto.ChangePasswordDTO;
-import com.mauamott.loginuser.exception.UserExceptions;
+import static com.mauamott.loginuser.exception.UserExceptions.*;
+import static com.mauamott.loginuser.utils.Constants.*;
+
 import com.mauamott.loginuser.handlers.AuditHandler;
 import com.mauamott.loginuser.repository.UserRepository;
 import com.mauamott.loginuser.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 import reactor.util.function.Tuple2;
-
-import javax.crypto.KeyGenerator;
-
-import java.security.Key;
-
-import static org.springframework.web.reactive.function.BodyInserters.fromValue;
 
 @Service
 @Slf4j
@@ -32,6 +27,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Mono<User> getUser(String id) {
+
         return userRepository.findById(id);
     }
 
@@ -39,7 +35,9 @@ public class UserServiceImpl implements UserService {
     public Mono<Boolean> deleteUser(String id) {
         return userRepository.findById(id)
                 .flatMap(user -> userRepository.deleteById(id).thenReturn(true))
-                .switchIfEmpty(Mono.just(false));
+                .switchIfEmpty(Mono.just(false))
+                .onErrorResume(ErrorDeleteUserException.class, ex -> auditHandler.saveAuditLog(id, ERROR_DELETE_USER)
+                        .then(Mono.error(ex)));
     }
 
     @Override
@@ -53,7 +51,9 @@ public class UserServiceImpl implements UserService {
                     existingUser.setRoles(updatedUser.getRoles());
                     return existingUser;
                 })
-                .flatMap(userRepository::save);
+                .flatMap(userRepository::save)
+                .onErrorResume(ErrorUpdateUserException.class, ex -> auditHandler.saveAuditLog(id, ERROR_UPDATE_USER)
+                        .then(Mono.error(ex)));
     }
 
     @Override
@@ -61,56 +61,20 @@ public class UserServiceImpl implements UserService {
 
         return Mono.zip(existingUserMono, updatedUserMono, (existingUser, updatedUser) -> {
                     if (!passwordEncoder.matches(updatedUser.getOldPassword(), existingUser.getPassword())) {
-                        throw new UserExceptions.IncorrectPasswordException("Old password is incorrect");
+                        throw new IncorrectPasswordException(OLD_PASSWORD_INCORRECT);
                     }
                     String passwordEncode = passwordEncoder.encode(updatedUser.getPassword());
                     existingUser.setPassword(passwordEncode);
                     return existingUser;
                 })
-                .flatMap(updatedUser -> {
-                    return Mono.zip(
-                                    auditHandler.saveAuditLog(updatedUser.getId(), "CHANGE_PASSWORD"),
-                                    userRepository.save(updatedUser)
-                            )
-                            .map(Tuple2::getT2);
-                })
+                .flatMap(updatedUser -> Mono.zip(
+                                auditHandler.saveAuditLog(updatedUser.getId(), CHANGE_PASSWORD),
+                                userRepository.save(updatedUser)
+                        )
+                        .map(Tuple2::getT2))
                 .flatMap(updatedUser -> ServerResponse.ok().build())
                 .switchIfEmpty(ServerResponse.notFound().build())
-                .onErrorResume(UserExceptions.IncorrectPasswordException.class, ex -> {
-                    return auditHandler.saveAuditLog(id, "PASSWORD_MISMATCH")
-                            .then(Mono.error(ex));
-                })
-                .onErrorResume(this::handleUpdateError);
+                .onErrorResume(IncorrectPasswordException.class, ex -> auditHandler.saveAuditLog(id, PASSWORD_MISMATCH)
+                        .then(Mono.error(ex)));
     }
-
-
-    private Mono<ServerResponse> handleUpdateError(Throwable e) {
-        log.error("Error handling user update", e);
-        if (e instanceof DuplicateKeyException duplicateKeyException) {
-            String errorMessage = duplicateKeyException.getMessage();
-
-            if (errorMessage.contains("email")) {
-                return Mono.error(new UserExceptions.DuplicateEmailException("Email already exists"));
-            } else if (errorMessage.contains("username")) {
-                return Mono.error(new UserExceptions.DuplicateUsernameException("Username already exists"));
-            }
-        }
-        return Mono.error(e);
-    }
-
-
-    public Mono<User> handleDuplicateKeyError(Throwable e) {
-        log.error("Error handling duplicate key", e);
-        if (e instanceof DuplicateKeyException duplicateKeyException) {
-            String errorMessage = duplicateKeyException.getMessage();
-
-            if (errorMessage.contains("email")) {
-                return Mono.error(new UserExceptions.DuplicateEmailException("Email already exists"));
-            } else if (errorMessage.contains("username")) {
-                return Mono.error(new UserExceptions.DuplicateUsernameException("Username already exists"));
-            }
-        }
-        return Mono.error(e);
-    }
-
 }

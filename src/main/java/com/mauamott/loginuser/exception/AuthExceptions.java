@@ -10,4 +10,10 @@ public class AuthExceptions {
             super(HttpStatus.UNAUTHORIZED, message);
         }
     }
+        public static class InvalidTotpException extends ResponseStatusException {
+        public InvalidTotpException(String message) {
+            super(HttpStatus.UNAUTHORIZED, message);
+        }
+    }
+
 }
