@@ -40,6 +40,10 @@ dependencies {
 	//2FA
 	implementation 'com.google.zxing:core:3.4.0'
 	implementation 'com.warrenstrange:googleauth:1.1.4'
+
+	//validation email
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
 }
 
 tasks.named('bootBuildImage') {

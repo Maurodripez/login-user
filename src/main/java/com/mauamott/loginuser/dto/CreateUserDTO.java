@@ -15,6 +15,5 @@ public class CreateUserDTO {
     private String name;
     private String lastname;
     private String oldPassword;
-    private String role;
-
+    private String role = "ROLE_USER";
 }

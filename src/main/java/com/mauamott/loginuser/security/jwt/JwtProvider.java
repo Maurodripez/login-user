@@ -30,7 +30,25 @@ public class JwtProvider {
                 .setSubject(userDetails.getUsername())
                 .claim("roles", userDetails.getAuthorities())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(new Date().getTime() + expiration * 1000))
+                .setExpiration(new Date(new Date().getTime() + expiration * 1000L))
+                .signWith(getKey(secret))
+                .compact();
+    }
+
+    public String generateTokenTemporary(UserDetails userDetails, int timeExpiration){
+        return Jwts.builder()
+                .setSubject(userDetails.getUsername())
+                .claim("roles", userDetails.getAuthorities())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(new Date().getTime() + timeExpiration * 1000L))  // 2 minutos
+                .signWith(getKey(secret))
+                .compact();
+    }
+    public String generateTokenWithUsername(String username, int timeExpiration){
+        return Jwts.builder()
+                .setSubject(username)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(new Date().getTime() + timeExpiration * 1000L))
                 .signWith(getKey(secret))
                 .compact();
     }

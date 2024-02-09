@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificación de correo electrónico</title>
+</head>
+<body style="text-align: center;">
+<div style="font-family: Arial, sans-serif; background-color: #f8f9fa; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); display: inline-block;">
+    <img src="[URL_LOGO]" alt="Logo de la aplicación" style="display: block; max-width: 200px; margin: 0 auto; padding: 10px;">
+    <h2 style="margin-bottom: 20px;">Verificación de correo electrónico</h2>
+    <p style="text-align: center;">¡Hola, <span th:text="${nombreUsuario}" style="font-weight: bold;"></span>!</p>
+    <p style="text-align: center;">¡Gracias por registrarte en nuestra aplicación! Para completar el proceso de registro, por favor verifica tu dirección de correo electrónico haciendo clic en el siguiente enlace:</p>
+    <div style="text-align: center; margin-top: 20px;">
+        <strong><a th:href="${enlaceVerificacion}" style="display: inline-block; padding: 10px 20px; background-color: #007bff; border: none; color: #ffffff; text-decoration: none; font-weight: bold; border-radius: 5px;">Verificar Correo Electrónico</a></strong>
+    </div>
+    <p style="text-align: center;">Si no solicitaste este registro, por favor ignora este correo electrónico.</p>
+    <p style="text-align: center; margin-top: 20px;">Saludos,<br>El equipo de Login2FA</p>
+</div>
+</body>
+</html>

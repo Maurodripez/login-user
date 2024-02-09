@@ -16,4 +16,16 @@ public class AuthExceptions {
         }
     }
 
+    public static class UserNotVerifiedException extends ResponseStatusException {
+        public UserNotVerifiedException(String message) {
+            super(HttpStatus.UNAUTHORIZED, message);
+        }
+    }
+
+    public static class EmailSendException extends ResponseStatusException {
+        public EmailSendException(String message) {
+            super(HttpStatus.UNAUTHORIZED, message);
+        }
+    }
+
 }

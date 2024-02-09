@@ -40,14 +40,12 @@ public class User implements UserDetails {
     private String roles;
 
     @Builder.Default
-    private boolean verify = false;
+    private boolean verified = false;
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String secret;
 
     private String qrCodeUri;
-
-    private Boolean mfaEnabled;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
